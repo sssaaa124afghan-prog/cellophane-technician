@@ -34,17 +34,30 @@ button{flex:1;font:inherit;font-size:16px;font-weight:600;min-height:44px;border
 button.main{background:var(--blue);color:#fff}
 button:active{opacity:.7}
 button:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--blue) 55%,transparent);outline-offset:2px}
+header .hb{display:flex;gap:14px;align-items:center}
+header button{flex:none;min-height:36px;padding:4px 14px;font-size:15px;border-radius:10px}
+#menu{position:fixed;inset:calc(env(safe-area-inset-top,0px) + 58px) 0 0 0;background:var(--bg);overflow:auto;z-index:5;padding:4px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+#menu[hidden]{display:none}
+#menu .in{max-width:640px;margin:0 auto}
+#menu h2{font-size:13px;font-weight:500;color:var(--label-2);padding:16px 12px 6px}
+#menu .grp{background:var(--card);border-radius:12px;overflow:hidden}
+#menu .grp button{display:flex;width:100%;gap:12px;align-items:center;text-align:start;background:transparent;color:var(--label);font-weight:500;font-size:17px;
+  min-height:52px;padding:8px 14px;border-radius:0;border-top:.5px solid var(--sep)}
+#menu .grp button:first-child{border-top:0}
+#menu .grp i{font-style:normal;flex:none;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+#menu .grp span{flex:1}
+#menu .grp button::after{content:"‹";color:var(--label-2);font-size:22px;opacity:.5}
 #nogl{padding:24px;text-align:center;color:var(--label-2)}
 </style>
 </head>
 <body>
-<header><h1>تغيير المقاس 3D</h1><a href="./">‹ كارت الظبط</a></header>
+<header><h1 id="ttl">تغيير المقاس 3D</h1><div class="hb"><button id="mbtn">كل المراحل</button><a href="./">‹ كارت الظبط</a></div></header>
+<div id="menu"><div class="in"></div></div>
 <div id="stage"></div>
 <div id="panel">
   <div id="cap"><small></small><b></b><ol></ol></div>
-  <select id="jump" aria-label="روح لخطوة"></select>
   <input id="sl" type="range" min="0" max="20" step="0.01" value="0" aria-label="مرحلة الحركة">
-  <div class="row"><button id="prev">السابق</button><button id="play" class="main">تشغيل</button><button id="next">التالي</button></div>
+  <div class="row"><button id="prev">السابقة</button><button id="play" class="main">عيد الحركة</button><button id="next">التالية</button></div>
 </div>
 <script type="module">
 import * as THREE from './vendor/three.module.min.js';
@@ -206,8 +219,10 @@ const CAM={ov:[[640,470,-600],[0,H/2+60,90]],mold:[[430,340,-260],[0,H,W/2]],gui
  roll:[[560,600,-480],[0,H+TAIL+W+90,-60]],col:[[-600,360,-250],[colX+60,H+50,-16]],fold:[[420,220,-330],[0,H/2,0]],heat:[[430,330,EX+560],[0,H/2,EX+150]],
  air:[[RX+330,230,RZ-260],[RX+26,40,RZ]],pan:[[PX+230,330,PZ-330],[PX,250,PZ]]};
 const CAMOF=['pan','mold','mold','guide','brush','roll','roll','col','fold','heat','air','ov','pan','ov','ov','fold','fold','ov','heat','heat'];
-const cap=document.getElementById('cap'),sl=document.getElementById('sl'),jump=document.getElementById('jump');
-jump.innerHTML=STEPS.map((s,i)=>`<option value="${i}">${i+1}. ${s[0]}</option>`).join('');
+const cap=document.getElementById('cap'),sl=document.getElementById('sl'),menu=document.getElementById('menu');
+const GR=[['تبديل القالب',0,2],['ظبط المسافات والسلوفان',3,9],['الهوا والحرارة والشاشة',10,12],['التجربة: بوكس واحد',13,18],['الفحص',19,19]];
+const grOf=i=>GR.find(g=>i>=g[1]&&i<=g[2])[0];
+menu.firstElementChild.innerHTML=GR.map(g=>`<h2>${g[0]}</h2><div class="grp">`+STEPS.slice(g[1],g[2]+1).map((x,k)=>`<button data-i="${g[1]+k}"><i>${g[1]+k+1}</i><span>${x[0]}</span></button>`).join('')+'</div>').join('');
 let lastCap=-1,camGoal=null,camAnim=0;
 ctl.addEventListener('start',()=>camAnim=0);
 function apply(){
@@ -241,13 +256,13 @@ function apply(){
   sealer.material.emissiveIntensity=Math.max(sealer.material.emissiveIntensity,.3*P(11));
   B.visible=T<1||T>=2.75;
   const i=Math.min(NS-1,Math.floor(T));
-  if(i!==lastCap){lastCap=i;cap.children[0].textContent='الخطوة '+(i+1)+' من '+NS+(i<W0?' · الظبط':i<NS-1?' · التجربة':' · الفحص');cap.children[1].textContent=STEPS[i][0];
-    cap.children[2].innerHTML=STEPS[i][1].map(x=>'<li>'+x+'</li>').join('');cap.scrollTop=0;jump.value=i;
+  if(i!==lastCap){lastCap=i;cap.children[0].textContent='المرحلة '+(i+1)+' من '+NS+' · '+grOf(i);cap.children[1].textContent=STEPS[i][0];
+    cap.children[2].innerHTML=STEPS[i][1].map(x=>'<li>'+x+'</li>').join('');cap.scrollTop=0;
     const c=CAM[CAMOF[i]];const tg=new THREE.Vector3(...c[1]),ps=new THREE.Vector3(...c[0]);if(cam.aspect<1)ps.sub(tg).multiplyScalar(1.45).add(tg);camGoal=[ps,tg];camAnim=70}
 }
 const v=new THREE.Vector3();
 function frame(){
-  if(playing){T=Math.min(target,T+.011);sl.value=T;if(T>=target){playing=false;btn.textContent=T>=NS-.01?'من الأول':'تشغيل'}}
+  if(playing){T=Math.min(target,T+.011);sl.value=T;if(T>=target)playing=false}
   apply();
   if(camAnim>0&&camGoal){cam.position.lerp(camGoal[0],.07);ctl.target.lerp(camGoal[1],.07);camAnim--}
   ctl.update();renderer.render(scene,cam);
@@ -257,16 +272,19 @@ function frame(){
 }
 function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.fov=w<h?52:38;cam.updateProjectionMatrix()}
 new ResizeObserver(size).observe(stage);size();
-let playing=false,target=NS-.001;const btn=document.getElementById('play');
-const stop=()=>{playing=false;btn.textContent='تشغيل'};
-const go=x=>{target=Math.min(NS-.001,x);playing=true;btn.textContent='إيقاف'};
-btn.onclick=()=>{if(playing)return stop();if(T>=NS-.01)T=0;go(NS)};
-document.getElementById('next').onclick=()=>{const k=Math.floor(T+.001);if(T-k>=.85){T=Math.min(NS-1,k+1);go(T+.9)}else go(k+.9)};
-document.getElementById('prev').onclick=()=>{stop();T=Math.max(0,Math.floor(T+.001)-1);sl.value=T;go(T+.9)};
-sl.oninput=()=>{stop();T=Math.min(NS-.001,+sl.value)};
-jump.onchange=()=>{T=+jump.value;sl.value=T;go(T+.9)};
+let playing=false,target=0,cur=0;const btn=document.getElementById('play');
+function openStep(i,keep){cur=Math.max(0,Math.min(NS-1,i));sl.min=cur;sl.max=cur+.999;T=cur;sl.value=cur;target=cur+.999;playing=true;menu.hidden=true;
+  if(!keep)try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}}
+btn.onclick=()=>openStep(cur,true);
+document.getElementById('next').onclick=()=>{if(cur<NS-1)openStep(cur+1);else{playing=false;menu.hidden=false}};
+document.getElementById('prev').onclick=()=>{if(cur>0)openStep(cur-1)};
+sl.oninput=()=>{playing=false;T=+sl.value};
+document.getElementById('mbtn').onclick=()=>{playing=false;menu.hidden=!menu.hidden};
+menu.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)openStep(+b.dataset.i)});
+const fromHash=()=>{const m=/^#s(\d+)$/.exec(location.hash);if(m)openStep(+m[1]-1,true)};
+addEventListener('hashchange',fromHash);fromHash();
 renderer.setAnimationLoop(frame);
-window.__set=x=>{T=x;sl.value=x};
+window.__set=x=>{T=x;sl.min=0;sl.max=20;sl.value=x};
 </script>
 </body>
 </html>
