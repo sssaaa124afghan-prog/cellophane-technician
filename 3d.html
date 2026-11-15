@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>حركة اللف 3D — فني ماكينة السلوفان</title>
+<title>تغيير المقاس خطوة بخطوة 3D — فني ماكينة السلوفان</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--blue:#007aff;--label:#000;--label-2:rgba(60,60,67,.62);--bg:#f2f2f7;--card:#fff;--fill:rgba(120,120,128,.12);--sep:rgba(60,60,67,.22);
@@ -20,9 +20,14 @@ header a{color:var(--blue);text-decoration:none;font-weight:600;font-size:15px;m
 .tag{position:absolute;transform:translate(-50%,-120%);background:#ffcc00;color:#000;font-size:13px;font-weight:700;border-radius:8px;padding:2px 9px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 .tag::after{content:"";position:absolute;inset-inline-start:50%;bottom:-5px;margin-inline-start:-5px;border:5px solid transparent;border-top-color:#ffcc00;border-bottom:0}
 #panel{background:var(--card);border-radius:16px 16px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -1px 0 var(--sep)}
-#cap b{display:block;font-size:17px;font-weight:600}
-#cap span{display:block;font-size:14px;color:var(--label-2);min-height:3.2em}
+#panel{max-height:46vh;display:flex;flex-direction:column}
+#cap{overflow:auto;flex:1;min-height:92px}
+#cap b{display:block;font-size:18px;font-weight:600;margin:2px 0 4px}
+#cap ol{padding-inline-start:20px;font-size:15px;color:var(--label)}
+#cap li{margin-bottom:4px}
 #cap small{font-size:12px;color:var(--label-2)}
+#cap em{font-style:normal;font-weight:700;color:var(--blue)}
+select{font:inherit;font-size:15px;width:100%;min-height:40px;border:0;border-radius:10px;background:var(--fill);color:var(--label);padding:6px 10px;margin-top:8px}
 input[type=range]{width:100%;margin:10px 0;accent-color:var(--blue);direction:ltr;min-height:28px}
 .row{display:flex;gap:10px}
 button{flex:1;font:inherit;font-size:16px;font-weight:600;min-height:44px;border:0;border-radius:12px;background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue);cursor:pointer}
@@ -33,11 +38,12 @@ button:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--b
 </style>
 </head>
 <body>
-<header><h1>حركة اللف 3D</h1><a href="./">‹ كارت الظبط</a></header>
+<header><h1>تغيير المقاس 3D</h1><a href="./">‹ كارت الظبط</a></header>
 <div id="stage"></div>
 <div id="panel">
-  <div id="cap"><small></small><b></b><span></span></div>
-  <input id="sl" type="range" min="0" max="6" step="0.01" value="0" aria-label="مرحلة الحركة">
+  <div id="cap"><small></small><b></b><ol></ol></div>
+  <select id="jump" aria-label="روح لخطوة"></select>
+  <input id="sl" type="range" min="0" max="20" step="0.01" value="0" aria-label="مرحلة الحركة">
   <div class="row"><button id="prev">السابق</button><button id="play" class="main">تشغيل</button><button id="next">التالي</button></div>
 </div>
 <script type="module">
@@ -46,6 +52,9 @@ import {OrbitControls} from './vendor/OrbitControls.js';
 
 const q=new URLSearchParams(location.search), n=(k,d)=>{const v=parseFloat(q.get(k));return v>0?v:d};
 const L=n('l',245), W=n('w',135), H=n('h',75), OV=15, TAIL=(H+OV)/2, E=(H+15)/2, FW=L+2*E, CUT=2*(W+H)+OV;
+let C={tempStart:125,filmType:'acrylic',thick:20,hostSpeed:18,feedSpeed:200,pusherSpeed:50,feedShare:.66,air:.6,air2:.3,startSpeed:12};
+try{const r=JSON.parse(localStorage.getItem('cello_tech_v6')||'null');if(r&&r.cfg)C=Object.assign(C,r.cfg)}catch(e){}
+const TB=C.tempStart+(C.filmType==='coex'?15:0)+Math.round(3*(C.thick-25)/5), FEED=Math.max(C.feedSpeed,Math.ceil(CUT/(C.feedShare*60/C.hostSpeed)/10)*10);
 const stage=document.getElementById('stage');
 let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true})}catch(e){stage.innerHTML='<p id="nogl">المتصفح ده مش بيدعم العرض ثلاثي الأبعاد. ارجع لكارت الظبط.</p>';throw e}
@@ -68,11 +77,23 @@ const add=(o,x=0,y=0,z=0,p=scene)=>{o.position.set(x,y,z);p.add(o);return o};
 /* ---- الماكينة الثابتة ---- */
 add(box(L+420,16,330,steel),0,-8,-170);            // الطاولة قبل فتحة الفيلم
 add(box(L+420,16,205,steel),0,-8,W/2+10+95-W/2);  // الطاولة بعد الفتحة
-for(const s of[-1,1]){
-  add(box(4,26,330,steel),s*(L/2+1.25+2),13,-172);                 // دلائل السير
-  add(box(3,H+6,W,alu),s*(L/2+2.5),(H+6)/2,W/2);                   // جنب القالب
-}
-add(box(L+5,3,W,alu),0,H+4,W/2);                                   // سقف القالب
+const guides=[-1,1].map(s=>{const g=add(box(4,26,330,steel),0,13,-172);g.userData.s=s;return g});
+const mkMold=(m,k)=>{const g=add(new THREE.Group());for(const s of[-1,1])add(box(3,H+6,W,m),s*(L/2+2.5)*k,(H+6)/2,W/2,g);add(box((L+5)*k,3,W,m),0,H+4,W/2,g);
+  for(const s of[-1,1])add(new THREE.Mesh(new THREE.CylinderGeometry(4,4,6,6),black),s*(L/2-20)*k,H+8,W/2,g);return g};
+const mold=mkMold(alu,1), moldOld=mkMold(M(0x9aa0a8,{transparent:true,opacity:.75}),1.14);
+const brush=add(new THREE.Group(),0,0,-78);
+add(box(L+30,6,52,steel),0,13,0,brush);add(box(L,10,44,M(0x2a2a2e,{roughness:1})),0,5,0,brush);
+for(const s of[-1,1])add(new THREE.Mesh(new THREE.CylinderGeometry(4,4,150,10),steel),s*(L/2+26),75,-78);
+const PX=-(L/2+215),PZ=-430;
+add(new THREE.Mesh(new THREE.CylinderGeometry(9,9,250,12),steel),PX,125,PZ);
+const pan=add(new THREE.Group(),PX,265,PZ);pan.rotation.y=.55;
+add(box(150,130,26,M(0xe6e7ea)),0,0,0,pan);add(box(110,62,3,M(0x1557d6,{emissive:0x1557d6,emissiveIntensity:.5})),0,26,-14,pan);
+const estop=add(new THREE.Mesh(new THREE.CylinderGeometry(11,11,12,20),M(0xe3221c,{emissive:0xff0000,emissiveIntensity:0})),-48,-36,-18,pan);estop.rotation.x=Math.PI/2;
+add(new THREE.Mesh(new THREE.CylinderGeometry(8,8,8,20),M(0x1faa55)),-12,-36,-16,pan).rotation.x=Math.PI/2;
+for(let i=0;i<3;i++)add(box(22,22,3,black),14+i*26,-36,-14,pan);
+const RX=L/2+150,RZ=120;
+for(const[i,r]of[[0,16],[1,11]]){add(new THREE.Mesh(new THREE.CylinderGeometry(r,r,70-i*14,16),M(0xf2f2f2)),RX+i*52,40,RZ);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(r+2,r+2,5,24),M(0xffffff)),RX+i*52,44,RZ-r-3).rotation.x=Math.PI/2}
 // عمود الارتفاع بالمسطرة
 const colX=-(L/2+130);
 add(new THREE.Mesh(new THREE.CylinderGeometry(13,13,360,24),steel),colX,180,-16);
@@ -131,32 +152,66 @@ for(const s of[-1,1]){const x=s*L/2;
   mk(E,W,x+s*1,0,W/2, s*E/2,0,0,'z', s,1).userData.k='bot';         // سفلي
   mk(E,W,x+s*2,H,W/2, s*E/2,0,0,'z',-s,1).userData.k='top';         // علوي
 }
-/* ---- ملصقات الأرقام ---- */
-const tags=[];
-const tag=(txt,v,a,b)=>{const el=document.createElement('div');el.className='tag';el.innerHTML=txt;el.dir='auto';stage.appendChild(el);tags.push({el,v,a,b})};
-const mm=x=>'<bdi dir="ltr">'+(Math.round(x*10)/10)+'</bdi> مم';
-tag('الدلائل '+mm(L+2.5),new THREE.Vector3(L/2+4,30,-200),0,.6);
-tag('Film length '+mm(CUT),new THREE.Vector3(0,H+TAIL+W-10,0),.2,1.2);
-tag('عرض الرول '+mm(FW),new THREE.Vector3(0,H+TAIL+W+190,-70),0,1.2);
-tag('لوح الطي: يبعد 1.5 إلى 3 مم',new THREE.Vector3(L/2+10,10,-8),1.2,2.2);
-tag('تراكب اللحام '+mm(OV),new THREE.Vector3(0,H/2,-12),2.3,3.4);
-tag('فتحة الارتفاع '+mm(H+4),new THREE.Vector3(colX,H+40,-16),2.3,3.4);
-tag('طرف السلوفان '+mm(E),new THREE.Vector3(L/2+E,H,W/2),3.1,4.1);
-tag('سخانات الجوانب = '+mm(L),new THREE.Vector3(0,H+70,EX+150),5,6.01);
-
-/* ---- الحركة: كل حاجة محسوبة من t ---- */
-const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), ph=(t,a,b)=>{const x=cl((t-a)/(b-a));return x*x*(3-2*x)};
-const CAP=[
- ['الخطوة 1 من 6','البوكس بين الدلائل','البوكس واقف قدام ستارة السلوفان. الدلائل بتمسكه من الجنبين من غير ما تزنقه.'],
- ['الخطوة 2 من 6','الدافع بيزق البوكس في السلوفان','البوكس بياخد السلوفان معاه ويدخل القالب، والفيلم بيلف على الوش والضهر. طول الفيلم بيتظبط من Film length.'],
- ['الخطوة 3 من 6','لوح الطي السفلي بيطلع','بيطوي طرف الفيلم السفلي على جنب البوكس. لو اللوح بعيد الفيلم يطلع مرخي، ولو لازق البوكس يتخدش.'],
- ['الخطوة 4 من 6','السخان الطولي بينزل ويلحم','بيطوي الطرف العلوي فوق السفلي ويلحمهم. التراكب 15 مم. ارتفاعه بيتظبط من العمود اللي عليه المسطرة.'],
- ['الخطوة 5 من 6','طي الأطراف','الطرفين الجانبيين بيتطووا الأول، وبعدهم السفلي، وبعده العلوي.'],
- ['الخطوة 6 من 6','الخروج بين سخانات الجوانب','البوكس بيطلع على السير، والسخانين بيقفلوا على الطرفين ويلحموهم. المسافة بينهم = طول البوكس.']
+/* ---- الخطوات ---- */
+const mm=x=>'<em dir="ltr">'+(Math.round(x*10)/10)+'</em> مم', em=x=>'<em dir="ltr">'+x+'</em>';
+const STEPS=[
+ ['الأمان أولًا',['دوس Stop على الشاشة وحوّل لـ Manual Mode.','دوس زرار الطوارئ الأحمر قبل ما تمد إيدك جوه الماكينة.','السخانات بتفضل سخنة: استنى تبرد أو البس جوانتي حراري.','جهّز جنبك: القالب الجديد، الرول، مفتاح الأعمدة المربعة، كارت القالب، و5 بوكسات.']],
+ ['فك القالب القديم',['فك مسامير تثبيت القالب.','ارفعه لفوق باستقامة وحطه على الرف في مكانه.','نضّف مكان القالب من بواقي السلوفان واللزق.']],
+ ['ركّب القالب الجديد',['اتأكد إن الرقم المحفور عليه هو مقاس البوكس: '+em(L+'*'+W+'*'+H)+'.','نزّله في مكانه واربط المسامير.','جرّب بوكس بإيدك: يدخل ويطلع من غير زنقة ومن غير لعب.']],
+ ['دلائل السير',['فك الذراع البرتقالي.','حط بوكس بين الدليلين وقرّبهم لحد ما يفضل 1 إلى 1.5 مم من كل جنب.','المسافة الداخلية بين الدليلين = '+mm(L+2.5)+'.','اقفل الذراع وحرّك البوكس بإيدك: لازم يمشي حر.']],
+ ['الضاغط (الفرشة)',['حط بوكس تحت الفرشة.','نزّلها لحد ما الشعر يضغط البوكس 2 مم. ارتفاع الفرشة = '+mm(H-2)+'.','البوكس يتحرك تحتها بمقاومة خفيفة. لو بيتعلّم ارفعها مم.']],
+ ['رول السلوفان والشريط الدهبي',['عرض الرول المطلوب '+mm(FW)+' (المسموح من '+em(L+H+8)+' لحد '+em(Math.round(L+1.5*H))+').','ركّبه على المحور ووسّطه: الزيادة عن البوكس '+mm(E)+' من كل جنب.','عدّي الفيلم على البكر زي الرسمة الملزوقة على الماكينة.','الشريط الدهبي على بعد '+mm(E+20)+' من حرف الرول.']],
+ ['شدة الرول',['اسحب الفيلم بإيدك: المقاومة تبقى خفيفة وثابتة.','مشدود قوي = الطول يطلع ناقص والشريط الدهبي يكرمش.','مرخي = الفيلم يرفرف ويتكرمش قبل ما يوصل للبوكس.','عدّل فرامل المحور شوية بشوية.']],
+ ['ارتفاع وحدة الطي واللحام',['فك الذراعين البرتقالي اللي على العمود.','لف العمود المربع بالمفتاح لحد ما الفتحة = '+mm(H+4)+'، يعني 1.5 إلى 3 مم فوق وتحت البوكس.','اقفل الذراعين.','اكتب قراءة المسطرة على كارت القالب عشان المرة الجاية.']],
+ ['وقفة الدافع ولوح الطي',['من شاشة Manual شغّل الدافع مرة واحدة.','لازم يقف قبل لوح الطي السفلي بـ 1 إلى 2 مم.','مشكّل الأركان على نفس مستوى لوح الطي، وبينهم 1 إلى 2 مم.']],
+ ['سخانات الجوانب',['فك الذراعين البرتقالي اللي على القضيب المشقوق.','حط بوكس بين السخانين وقرّبهم لحد ما يلمسوه. المسافة بينهم = '+mm(L)+'.','اقفل الذراعين. البوكس يعدّي بينهم بلمس خفيف.']],
+ ['الهوا',['المنظم الكبير (الرئيسي): '+em(C.air)+' MPa.','المنظم الصغير (اللحام): '+em(C.air2)+' MPa.','لو الرئيسي نزل عن 0.5 الماكينة تدي إنذار Low air pressure.']],
+ ['الحرارة',['Long side sealing: '+em(TB)+' درجة.','Left وRight spot sealing: '+em(TB+10)+' درجة.','Hot sealing (Iron): '+em(TB-5)+' درجة.','استنى الحرارة الفعلية PV توصل للمطلوبة SV، وبعدها دقيقتين.','دي أرقام بداية. التعديل 5 درجات في المرة.']],
+ ['أرقام الشاشة (Auto)',['Film length = '+em(CUT)+'.','Film feeding speed = '+em(FEED)+'.','Host speed = '+em(C.startSpeed)+' لأول تجربة.','Front side pusher speed = '+em(C.pusherSpeed)+'.','الزوايا في Parameter ← Angle ماتتلمسش.']],
+ ['تجربة: البوكس بين الدلائل',['فك زرار الطوارئ وحط بوكس واحد.','دوس Single Cycle عشان الماكينة تلف بوكس واحد بس.','راقب كل حركة من الخطوات الجاية.']],
+ ['الدافع بيدخّل البوكس في السلوفان',['البوكس بياخد السلوفان معاه ويدخل القالب.','الفيلم بيلف على الوش والضهر.','لو الفيلم اتأخر أو سبق البوكس: ده توقيت، مش ظبط مقاس.']],
+ ['لوح الطي السفلي بيطلع',['بيطوي طرف الفيلم السفلي على جنب البوكس.','لو اللوح بعيد الفيلم يطلع مرخي، ولو لازق البوكس يتخدش.']],
+ ['السخان الطولي بينزل ويلحم',['بيطوي الطرف العلوي فوق السفلي ويلحمهم.','التراكب بينهم '+mm(OV)+'.']],
+ ['طي الأطراف',['الطرفين الجانبيين بيتطووا الأول.','بعدهم الطرف السفلي، وبعده العلوي.','لو الأركان مش مربعة راجع خطوة ارتفاع وحدة الطي.']],
+ ['الخروج بين سخانات الجوانب',['البوكس بيطلع على السير بين السخانين.','السخانين بيلحموا الطرفين.']],
+ ['افحص أول 3 بوكسات',['التراكب على اللحام الطولي = '+mm(OV)+'. لو أقل أو أكتر عدّل Film length بالفرق.','الأطراف مقفولة وملحومة من غير ديل زيادة.','مفيش كرمشة على الوش، والشريط الدهبي في مكانه.','كله تمام؟ ارفع السرعة 15 وبعدها 18، واحفظ الظبطة «مؤكدة» واطبع كارت القالب.','فيه عيب؟ افتح «العيوب» في البرنامج.']]
 ];
-const cap=document.getElementById('cap'),sl=document.getElementById('sl');
-let t=0,lastCap=-1;
+const NS=STEPS.length, W0=13;
+const tags=[];
+const tag=(txt,v,a,b)=>{const el=document.createElement('div');el.className='tag';el.innerHTML=txt.replace(/<\/?em[^>]*>/g,m=>m.startsWith('</')?'</bdi>':'<bdi dir="ltr">');stage.appendChild(el);tags.push({el,v,a,b:b??a+1})};
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+tag('زرار الطوارئ',V(PX+30,250,PZ-30),0);
+tag('القالب القديم',V(0,H+150,W/2),1);
+tag('القالب '+L+'*'+W+'*'+H,V(0,H+30,W/2),2);
+tag('الدلائل '+mm(L+2.5),V(L/2+6,30,-230),3);
+tag('الفرشة '+mm(H-2),V(0,H+25,-78),4);
+tag('عرض الرول '+mm(FW),V(0,H+TAIL+W+195,-70),5);
+tag('الشريط '+mm(E+20)+' من الحرف',V(-(L/2)+20,H+TAIL+W+100,-150),5);
+tag('فرامل المحور',V(FW/2+30,H+TAIL+W+130,-70),6);
+tag('الفتحة '+mm(H+4),V(colX,H+70,-16),7);
+tag('يقف قبل اللوح 1 إلى 2 مم',V(0,12,-10),8);
+tag('المسافة = '+mm(L),V(0,H+75,EX+150),9);
+tag('رئيسي '+C.air+' · لحام '+C.air2+' MPa',V(RX+26,95,RZ),10);
+tag('Long side '+TB+'°',V(0,H+TAIL+85,-10),11);
+tag('Spot '+(TB+10)+'° · Iron '+(TB-5)+'°',V(0,H+40,EX+150),11);
+tag('Film length '+CUT+' · Feed '+FEED,V(PX,345,PZ),12);
+tag('Film length '+mm(CUT),V(0,H+TAIL+W-10,0),W0+.2,W0+1.2);
+tag('لوح الطي: يبعد 1.5 إلى 3 مم',V(L/2+10,10,-8),W0+2);
+tag('تراكب اللحام '+mm(OV),V(0,H/2,-12),W0+3);
+tag('طرف السلوفان '+mm(E),V(L/2+E,H,W/2),W0+4);
+tag('افحص: تراكب '+OV+' · أطراف مقفولة · من غير كرمشة',V(0,H+60,EX+150),W0+6);
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), ph=(t,a,b)=>{const x=cl((t-a)/(b-a));return x*x*(3-2*x)};
+let T=0; const P=k=>ph(T,k+.1,k+.8);
+const CAM={ov:[[640,470,-600],[0,H/2+60,90]],mold:[[430,340,-260],[0,H,W/2]],guide:[[360,300,-560],[0,20,-170]],brush:[[380,260,-380],[0,H,-78]],
+ roll:[[560,600,-480],[0,H+TAIL+W+90,-60]],col:[[-600,360,-250],[colX+60,H+50,-16]],fold:[[420,220,-330],[0,H/2,0]],heat:[[430,330,EX+560],[0,H/2,EX+150]],
+ air:[[RX+330,230,RZ-260],[RX+26,40,RZ]],pan:[[PX+230,330,PZ-330],[PX,250,PZ]]};
+const CAMOF=['pan','mold','mold','guide','brush','roll','roll','col','fold','heat','air','ov','pan','ov','ov','fold','fold','ov','heat','heat'];
+const cap=document.getElementById('cap'),sl=document.getElementById('sl'),jump=document.getElementById('jump');
+jump.innerHTML=STEPS.map((s,i)=>`<option value="${i}">${i+1}. ${s[0]}</option>`).join('');
+let lastCap=-1,camGoal=null,camAnim=0;
+ctl.addEventListener('start',()=>camAnim=0);
 function apply(){
+  const t=cl(T-W0,0,6);
   const p1=ph(t,0,1),f1=ph(t,1.1,1.9),f2=ph(t,2.1,2.9),e1=ph(t,3.05,3.4),e2=ph(t,3.4,3.7),e3=ph(t,3.7,3.98),out=ph(t,4.1,4.95),hc=ph(t,5.1,5.8);
   const F=-150+(W+150)*p1, c=cl(F,0,W), dz=out*(EX+150-W/2), split=t>=3.02;
   B.position.set(0,H/2,F-W/2+dz);
@@ -174,27 +229,44 @@ function apply(){
   fold.position.y=-(TAIL+30)/2-14+(TAIL+14)*f1*(1-out);
   const sy=H+TAIL+60-(H+TAIL+60-(H-TAIL+OV/2+9))*f2*(1-out);
   car.position.y=sy;sealer.material.emissive.setHex(0xff3b00);sealer.material.emissiveIntensity=.9*ph(t,2.6,2.9)*(1-out);
-  for(const g of heat){const s=g.userData.s;g.position.set(s*(L/2+11+60*(1-hc)),0,EX+150);g.children[0].material.emissiveIntensity=1.1*ph(t,5.6,5.95)}
-  const i=Math.min(5,Math.floor(t));
-  if(i!==lastCap){lastCap=i;cap.children[0].textContent=CAP[i][0];cap.children[1].textContent=CAP[i][1];cap.children[2].textContent=CAP[i][2]}
+  for(const g of heat){const s=g.userData.s;g.position.set(s*(L/2+11+60*(1-P(9))),0,EX+150);g.children[0].material.emissiveIntensity=Math.max(.3*P(11),1.1*ph(t,5.3,5.95))}
+  estop.material.emissiveIntensity=T<1?.5+.5*Math.sin(performance.now()/180):0;
+  moldOld.visible=T<2;moldOld.position.y=260*P(1);
+  mold.visible=T>=2;mold.position.y=260*(1-P(2));
+  for(const g of guides)g.position.x=g.userData.s*(L/2+3.25+34*(1-P(3)));
+  brush.position.y=H-2+48*(1-P(4));
+  roll.visible=T>=5;roll.position.x=FW*.9*(1-P(5));G.visible=T>=5.9;
+  car.position.y+=90*(1-P(7));lev.rotation.x=.35-.6*P(7);
+  if(T>=8&&T<9)fold.position.y+=(TAIL+14)*Math.sin(Math.PI*P(8))*.8;
+  sealer.material.emissiveIntensity=Math.max(sealer.material.emissiveIntensity,.3*P(11));
+  B.visible=T<1||T>=2.75;
+  const i=Math.min(NS-1,Math.floor(T));
+  if(i!==lastCap){lastCap=i;cap.children[0].textContent='الخطوة '+(i+1)+' من '+NS+(i<W0?' · الظبط':i<NS-1?' · التجربة':' · الفحص');cap.children[1].textContent=STEPS[i][0];
+    cap.children[2].innerHTML=STEPS[i][1].map(x=>'<li>'+x+'</li>').join('');cap.scrollTop=0;jump.value=i;
+    const c=CAM[CAMOF[i]];const tg=new THREE.Vector3(...c[1]),ps=new THREE.Vector3(...c[0]);if(cam.aspect<1)ps.sub(tg).multiplyScalar(1.45).add(tg);camGoal=[ps,tg];camAnim=70}
 }
 const v=new THREE.Vector3();
 function frame(){
-  if(playing){t=Math.min(target,t+.012);sl.value=t;if(t>=target){playing=false;btn.textContent=t>=6?'من الأول':'تشغيل'}}
-  apply();ctl.update();renderer.render(scene,cam);
+  if(playing){T=Math.min(target,T+.011);sl.value=T;if(T>=target){playing=false;btn.textContent=T>=NS-.01?'من الأول':'تشغيل'}}
+  apply();
+  if(camAnim>0&&camGoal){cam.position.lerp(camGoal[0],.07);ctl.target.lerp(camGoal[1],.07);camAnim--}
+  ctl.update();renderer.render(scene,cam);
   const w=stage.clientWidth,h=stage.clientHeight;
-  for(const g of tags){const on=t>=g.a&&t<=g.b;v.copy(g.v);if(g.b>5)v.z=g.v.z;v.project(cam);
+  for(const g of tags){const on=T>=g.a&&T<g.b+.001;v.copy(g.v).project(cam);
     g.el.style.display=on&&v.z<1?'block':'none';g.el.style.left=(v.x*.5+.5)*w+'px';g.el.style.top=(-v.y*.5+.5)*h+'px'}
 }
 function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.fov=w<h?52:38;cam.updateProjectionMatrix()}
 new ResizeObserver(size).observe(stage);size();
-let playing=false,target=6;const btn=document.getElementById('play');
-btn.onclick=()=>{if(playing){playing=false;btn.textContent='تشغيل';return}if(t>=6)t=0;target=6;playing=true;btn.textContent='إيقاف'};
-document.getElementById('next').onclick=()=>{target=Math.min(6,Math.floor(t+1.001));playing=true;btn.textContent='إيقاف'};
-document.getElementById('prev').onclick=()=>{playing=false;btn.textContent='تشغيل';t=Math.max(0,Math.ceil(t-1.001));sl.value=t};
-sl.oninput=()=>{playing=false;btn.textContent='تشغيل';t=+sl.value};
+let playing=false,target=NS-.001;const btn=document.getElementById('play');
+const stop=()=>{playing=false;btn.textContent='تشغيل'};
+const go=x=>{target=Math.min(NS-.001,x);playing=true;btn.textContent='إيقاف'};
+btn.onclick=()=>{if(playing)return stop();if(T>=NS-.01)T=0;go(NS)};
+document.getElementById('next').onclick=()=>{const k=Math.floor(T+.001);if(T-k>=.85){T=Math.min(NS-1,k+1);go(T+.9)}else go(k+.9)};
+document.getElementById('prev').onclick=()=>{stop();T=Math.max(0,Math.floor(T+.001)-1);sl.value=T;go(T+.9)};
+sl.oninput=()=>{stop();T=Math.min(NS-.001,+sl.value)};
+jump.onchange=()=>{T=+jump.value;sl.value=T;go(T+.9)};
 renderer.setAnimationLoop(frame);
-window.__set=x=>{t=x;sl.value=x};
+window.__set=x=>{T=x;sl.value=x};
 </script>
 </body>
 </html>
