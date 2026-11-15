@@ -64,6 +64,7 @@ button.ok{background:var(--green);color:#fff}
 button.danger{background:color-mix(in srgb,var(--red) 12%,transparent);color:var(--red)}
 button.sm{min-height:36px;padding:6px 14px;font-size:15px;border-radius:10px}
 .btn-wide{width:100%}
+.btn3d{display:inline-flex;align-items:center;min-height:44px;padding:11px 18px;border-radius:12px;font-weight:600;text-decoration:none;color:var(--blue);background:color-mix(in srgb,var(--blue) 14%,transparent)}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 /* stat tiles */
 .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -379,6 +380,7 @@ function drawRun(){
     <div class="row noprint" style="margin-top:12px">
       <button class="ok" data-act="save-ok">الظبطة دي تمام، احفظها مؤكدة</button>
       <button class="ghost" data-act="save-try">احفظ كتجربة</button>
+      <a class="btn3d" href="3d.html?l=${c.l}&w=${c.w}&h=${c.h}">شوف الحركة 3D</a>
       <button class="ghost" data-act="mcard">اطبع كارت القالب</button>
       <button class="ghost" data-act="print">اطبع الصفحة كلها</button>
     </div>
