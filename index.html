@@ -202,7 +202,6 @@ button.ok{background:linear-gradient(180deg,#22b36a,var(--green));box-shadow:0 2
 button.danger{background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red);box-shadow:none;border:1px solid color-mix(in srgb,var(--red) 25%,transparent)}
 .btn-wide{min-height:56px;font-size:18px;border-radius:16px}
 .btn3d{border-radius:14px;min-height:48px}
-.btn3d[aria-disabled=true]{opacity:.45;pointer-events:none}
 .stats{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
 .stat{background:var(--fill-2);border:1px solid var(--separator);border-radius:14px;padding:12px 14px;position:relative;overflow:hidden}
 .stat:nth-child(-n+2){background:linear-gradient(160deg,var(--brand),#0b3f86);border:0;color:#fff}
@@ -327,10 +326,10 @@ const FILMS={
 const P=(id,name,unit,kind,auto,conf,hint)=>({id,name,unit,kind,auto,conf,hint,photo:'',x:null,y:null});
 const DEF={
   cfg:{sideAllow:15,overlap:15,clearance:1.25,moldClear:0.75,thick:20,density:0.91,priceKg:0,rollKg:0,rollWidths:[],
-       hostSpeed:18,feedSpeed:200,pusherSpeed:50,feedShare:0.66,tempStart:125,filmType:'acrylic',air:0.6,air2:0.3,startSpeed:12,speedMax:50,lsaBase:245,lsaCut:240,lsaSlope:0.1795,
+       hostSpeed:16,feedSpeed:0,pusherSpeed:50,feedShare:0.39,tempStart:196,filmType:'acrylic',air:0.6,air2:0.3,startSpeed:12,speedMax:50,lsaBase:245,lsaCut:240,lsaSlope:0.1795,
        foldGap:2,cornerGap:1.5,pusherStop:1.5,pressInterf:2,sideSqueeze:0,tapeMargin:20,
-       tempPerMicron:0.6,spotOff:10,ironOff:-5,tempPerDoubling:0,sealLen:0,dwellMin:0,pitchGap:30,
-       feedMax:0,tipExp:0.5,lMin:50,lMax:300,wMin:35,wMax:200,hMin:20,hMax:100,rollMax:350,refW:135,refH:75,calibNote:''},
+       tempPerMicron:0.6,spotOff:-43,ironOff:-5,tempPerDoubling:0,sealLen:0,dwellMin:0,pitchGap:30,
+       feedMax:0,tipExp:0.5,lMin:50,lMax:300,wMin:35,wMax:200,hMin:20,hMax:100,rollMax:350,refW:135,refH:75,calibNote:'',calibOk:false},
   params:[
     P('mold','1. القالب','','manual','mold','ok','القالب بمقاس البوكس بالظبط ومحفور عليه المقاس. لو مش موجود يتطلب من SICI بنفس صيغة الحفر.'),
     P('guide','2. دلائل السير (مسافة داخلية)','مم','manual','guide','ok','قيس 5 بوكسات وخد أطولهم، وسيب 1 إلى 1.5 مم من كل جنب. البوكس يمشي على خط النص من غير لعب. من التدريب: فكّ البراغي الأول (Loose)، ظبّط الدليل، وبعدين شدّ. الدليل على خط واحد من الجنبين (فيديو 04 و11 و24). جرّب 3 بوكسات في نفس الخط قبل السرعة الكاملة (فيديو 11 و18).'),
@@ -346,19 +345,18 @@ const DEF={
     P('side','10. سخانات الجوانب (المسافة بينهم)','مم','manual','side','est','= طول البوكس. لو السخانات على سوستة قرّبها 0.5 إلى 1 مم أقل من الطول عشان تضغط. حط البوكس بينهم كمقاس واقفل الذراعين. من التدريب: مكان سخان اللحام (القطعة اللي بتتحرك فوق/تحت) بيتظبط على ارتفاع البوكس: كل ما الارتفاع يزيد، الوضع بيتغير ولازم يتظبط تاني (فيديو 08)، ولا تخبّط السخان وانت بتحرّكه (فيديو 10).'),
     P('air','11. ضغط الهوا الرئيسي','MPa','manual','air','ok','المنظم اللي عليه الفلتر والزيّات. مايقلش عن 0.6 وإلا الماكينة تدي إنذار Low air pressure.'),
     P('air2','12. ضغط هوا اللحام','MPa','manual','air2','est','المنظم الصغير. من 0.25 إلى 0.35. الرئيسي لازم يفضل أعلى منه بـ 0.1 على الأقل. اللحام الضعيف يتصلح بالحرارة الأول مش بالضغط.'),
-    P('tlong','13. حرارة Long side sealing','°C','manual','temp','est','الأساس. السلوفان العادي (أكريليك) من 115 لـ 145، والمكوّن من طبقات (co-ex) من 130 لـ 160. غيّر 5 درجات في المرة وجرّب 10 بوكسات. المصنع في فيديو 20 كان بيشغل عدّاد على 155 وبيقول لازم 155 قبل ما يبدأ (الفيلم غير معروف). استنى لحد ما PV توصل لـ SV قبل التشغيل.'),
-    P('tleft','14. حرارة Left spot sealing','°C','manual','temp','est','أعلى من Long side بـ 10، لأن الطرف فيه 3 إلى 4 طبقات فيلم.'),
+    P('tlong','13. حرارة Long side sealing','°C','manual','temp','est','الأساس. السلوفان العادي (أكريليك) من 115 لـ 145، والمكوّن من طبقات (co-ex) من 130 لـ 160. غيّر 5 درجات في المرة وجرّب 10 بوكسات. المصنع في فيديو 20 كان بيشغل عدّاد على 155 وبيقول لازم 155 قبل ما يبدأ (الفيلم غير معروف). استنى لحد ما PV توصل لـ SV قبل التشغيل. على ماكينتكم: 193 لبوكس 245×135×75.'),
+    P('tleft','14. حرارة Left spot sealing','°C','manual','temp','est','على ماكينتكم الـ Spot أقل من Long side بحوالي 43 درجة (150 مقابل 193 على بوكس 245×135×75). التعديل بيتم من زرار المعايرة.'),
     P('tright','15. حرارة Right spot sealing','°C','manual','temp','est','زي Left بالظبط.'),
-    P('tiron','16. حرارة Hot sealing (Iron)','°C','manual','temp','est','أقل من Long side بـ 5، لأن لمسته أطول (1.6 ث) ومساحته أكبر، فهو أول واحد يكرمش الفيلم.'),
-    Object.assign(P('feed','17. Film feeding speed (شاشة Auto)','مم/ث','panel','feed','est','بيزيد بنسبة طول الفيلم عن المرجع.'),{x:49.4,y:36.4}),
-    Object.assign(P('host','18. Main Servo Speed = Host speed (شاشة Auto وجدول المنتجات)','بوكس/دقيقة','panel','host','ok','السرعة بتتحفظ لكل منتج في جدول المنتجات، وهي مش حد للماكينة (ماكينة التدريب شغالة 35 بوكس/دقيقة في فيديو 13، والكتالوج 30 إلى 50). أول مرة لمقاس جديد ابدأ أبطأ (الرقم ده) وجرّب 3 بوكسات، وبعد ما الشكل يثبت ارفع للسرعة اللي المنتج هيشتغل بيها.'),{x:64.4,y:36.2}),
+    P('tiron','16. حرارة Hot sealing (Iron)','°C','manual','temp','est','غير مؤكد: لسه ما اتقراش على ماكينتكم. التقدير أقل من Long side بـ 5، لأن لمسته أطول ومساحته أكبر. اقراه من العداد وعايِر.'),
+    Object.assign(P('feed','17. Film feeding speed (شاشة Auto)','مم/ث','panel','feed','est','بتتحسب من طول الفيلم ونسبة وقت الدورة المتاحة للتغذية. عند 16 بوكس/د وطول 435 هي 300 على شاشتكم.'),{x:49.4,y:36.4}),
+    Object.assign(P('host','18. Main Servo Speed = Host speed (شاشة Auto وجدول المنتجات)','بوكس/دقيقة','panel','host','ok','السرعة بتتحفظ لكل منتج في جدول المنتجات، وهي مش حد للماكينة (ماكينة التدريب شغالة 35 بوكس/دقيقة في فيديو 13، والكتالوج 30 إلى 50). أول مرة لمقاس جديد ابدأ أبطأ (الرقم ده) وجرّب 3 بوكسات، وبعد ما الشكل يثبت ارجع للسرعة المحفوظة للمنتج (على بوكس 245×135×75 عندكم: 16).'),{x:64.4,y:36.2}),
     Object.assign(P('fpusher','19. Front side pusher speed (شاشة Auto)','مم/ث','panel','fpusher','ok','زي المرجع.'),{x:49.5,y:45.7}),
     P('angles','20. زوايا التوقيت (Parameter ← Angle)','','panel','angles','ok','ترتيب الحركات جوه الدورة، ومش بيتغير مع المقاس. سيبه زي المرجع.')
   ],
-  panelPhoto:'',molds:[{id:'m13',name:'245*135*75 NO.13',l:245,w:135,h:75}],products:[]
+  panelPhoto:'',molds:[{id:'m13',name:'245*135*75 NO.13-4',l:245,w:135,h:75}],products:[]
 };
-let S=load(), cur=null, placing='', has3d=false;
-fetch('3d.html',{method:'HEAD',cache:'no-store'}).then(r=>{has3d=r.ok;if(has3d&&cur&&!$('#v-run').classList.contains('hide'))drawRun()}).catch(()=>{});
+let S=load(), cur=null, placing='';
 
 function load(){
   try{const r=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -374,7 +372,7 @@ let tt;function toast(m){const t=$('#toast');t.textContent=m;t.style.display='bl
 
 /* ---------- الحسابات ---------- */
 function calc(l,w,h){
-  const c=S.cfg, need=l+h+c.sideAllow, share=Math.min(0.95,Math.max(0.2,c.feedShare||0.66));
+  const c=S.cfg, need=l+h+c.sideAllow;
   const widths=[...c.rollWidths].sort((a,b)=>a-b);
   const roll=widths.find(x=>x>=need)||null;
   const useW=roll||need, cut=2*(w+h)+c.overlap;
@@ -383,6 +381,7 @@ function calc(l,w,h){
   const fit=x=>{const t=Math.max(2,2*c.clearance);return m=>['l','w','h'].every(k=>m[k]-x[k]>=0&&m[k]-x[k]<=t)};
   const mold=S.molds.find(fit({l,w,h}))||S.molds.find(m=>m.l===l&&m.w===w&&m.h===h)||null;
   /* حدود السرعة: السرعة المرجعية هي سقف، والحدود المحسوبة بس بتنزّلها */
+  const share=Math.min(0.95,Math.max(0.2,c.feedShare||0));
   const pitch=w+c.pitchGap, lims=[];
   if(c.tipExp>0&&c.refW>0&&c.refH>0)lims.push(['stab',c.hostSpeed*Math.pow((w/h)/(c.refW/c.refH),c.tipExp)]);
   if(c.feedMax>0)lims.push(['feed',60*c.feedMax*share/cut]);
@@ -392,7 +391,7 @@ function calc(l,w,h){
   if(c.speedMax>0&&steady>c.speedMax){steady=c.speedMax;why='max'}
   steady=Math.max(1,Math.floor(steady*2)/2);
   const start=Math.min(c.startSpeed,steady);
-  const cycle=60/steady, feed=Math.max(c.feedSpeed,Math.ceil(cut/(share*cycle)/10)*10);
+  const cycle=60/steady, feed=Math.max(c.feedSpeed||0,Math.ceil(cut/(share*cycle)/10)*10);
   let dwell=null,tSpeed=0;
   if(c.sealLen>0){dwell=c.sealLen/(steady*pitch/60);
     const ref=c.sealLen/(c.hostSpeed*(c.refW+c.pitchGap)/60);
@@ -400,6 +399,8 @@ function calc(l,w,h){
   const tempAdj=((FILMS[c.filmType]||FILMS.acrylic)[2])+Math.round(c.tempPerMicron*(c.thick-25)+tSpeed);
   const lsa=Math.round(Math.min(354,Math.max(0,c.lsaBase+c.lsaSlope*(cut-c.lsaCut))));
   const warn=[];
+  if(!(c.feedShare>=0.2))warn.push('نسبة وقت التغذية في الإعدادات أقل من 0.2 أو فاضية، والحساب اتعمل على 0.2.');
+  if(c.calibNote&&c.calibOk!==true)warn.push('المعايرة المحفوظة ('+c.calibNote+') مش من ظبطة مؤكدة: السرعة ونسبة التغذية والحرارة غير موثقة. عايِر من ظبطة مؤكدة قبل ما تعتمد عليها.');
   if(c.lsaSlope&&(cut<240||cut>435))warn.push('Long side start angle ('+lsa+'°) محسوب بالمدّ برّه المدى اللي اتقاس (طول فيلم 240 إلى 435 مم)، وتجريبي.');
   [['الطول',l,c.lMin,c.lMax],['العرض',w,c.wMin,c.wMax],['الارتفاع',h,c.hMin,c.hMax]].forEach(([n,v,a,b])=>{
     if(a>0&&v<a||b>0&&v>b)warn.push(n+' '+v+' مم برّه مدى الماكينة المنشور ('+a+' – '+b+' مم). راجع موديل ماكينتكم.')});
@@ -408,7 +409,7 @@ function calc(l,w,h){
   if(!roll&&widths.length)warn.push('مفيش رول متاح بعرض '+fx(need)+' مم أو أكتر.');
   if(why!=='ref')warn.push('السرعة نازلة عن المرجع بسبب: '+({max:'أقصى سرعة للماكينة',stab:'ثبات البوكس (نسبة العرض للارتفاع)',feed:'أقصى سرعة تغذية فيلم',seal:'زمن اللحام الأدنى'}[why])+'.');
   if(c.feedMax>0&&cut/feed>share*cycle*1.001)warn.push('سرعة التغذية المطلوبة أعلى من أقصى سرعة للماكينة.');
-  return {lsa,need,roll,useW,cut,flap,g,cycle,feed,feedTime:cut/feed,steady,start,why,dwell,tSpeed,tempAdj,pitch,
+  return {share,lsa,need,roll,useW,cut,flap,g,cycle,feed,feedTime:cut/feed,steady,start,why,dwell,tSpeed,tempAdj,pitch,
     perRoll:c.rollKg>0?Math.floor(c.rollKg*1000/g):null,
     cost:c.priceKg>0?g/1000*c.priceKg:null,warn,
     mold,moldNeed:{l:l+c.moldClear,w:w+c.moldClear,h:h+c.moldClear},noWidths:!widths.length};
@@ -440,6 +441,7 @@ function autoVal(p,l,w,h,k){
   return null;
 }
 /* سطر "اتحسبت إزاي" تحت كل بند */
+const sg=n=>(n>=0?'+ ':'− ')+Math.abs(n);
 function how(p,l,w,h,k){
   const c=S.cfg;
   switch(p.auto){
@@ -452,12 +454,11 @@ function how(p,l,w,h,k){
     case 'fold':return h+' + 2×'+c.foldGap;
     case 'corner':return 'ثابت = '+c.cornerGap+' (من الإعدادات)';
     case 'side':return l+(c.sideSqueeze?' − '+c.sideSqueeze:'');
-    case 'feed':return 'طول القطعية '+fx(k.cut)+' ÷ ('+Math.min(0.95,Math.max(0.2,c.feedShare||0.66))+' × دورة '+fx(k.cycle,2)+' ث)، مقرّب لأعلى 10، وأقله '+c.feedSpeed;
+    case 'feed':return 'طول القطعية '+fx(k.cut)+' ÷ ('+k.share+' × دورة '+fx(k.cycle,2)+' ث)، مقرّب لأعلى 10'+(c.feedSpeed>0?'، وأقله '+c.feedSpeed:'');
     case 'lsa':return 'تجريبي: '+c.lsaBase+' + '+c.lsaSlope+' × (طول القطعية '+fx(k.cut)+' − '+c.lsaCut+')';
-    case 'host':return S.products.some(x=>x.ok&&x.l===l&&x.w===w&&x.h===h)
-      ?'مقاس مؤكد: السرعة الثابتة = '+fx(k.steady)+' (المستهدفة '+c.hostSpeed+'، أقصى سرعة للماكينة '+c.speedMax+')'
-      :'مقاس لسه ما اتأكدش: سرعة أول تجربة = '+fx(k.start)+'، وبعد ما الشكل يثبت ارفع للسرعة الثابتة '+fx(k.steady);
-    case 'temp':return 'أساس '+c.tempStart+' + سُمك/نوع/سرعة '+(k.tempAdj>=0?'+':'')+k.tempAdj+(p.id==='tiron'?' '+(c.ironOff>=0?'+':'')+c.ironOff:p.id!=='tlong'?' '+(c.spotOff>=0?'+':'')+c.spotOff:'');
+    case 'host':{const conf=S.products.some(x=>x.ok&&x.l===l&&x.w===w&&x.h===h);
+      return (conf?'سرعة ثابتة (منتج مؤكد) = '+fx(k.steady):'سرعة أول تجربة = '+fx(k.start)+' (الثابتة المحسوبة '+fx(k.steady+0)+')')+' · المستهدفة '+c.hostSpeed+'، أقصى سرعة للماكينة '+c.speedMax+'، وبتتحفظ لكل منتج'}
+    case 'temp':return 'أساس '+c.tempStart+' + سُمك/نوع/سرعة '+(k.tempAdj>=0?'+ ':'− ')+Math.abs(k.tempAdj)+(p.id==='tiron'?' '+sg(c.ironOff)+' (غير مؤكد)':p.id!=='tlong'?' '+sg(c.spotOff):'');
   }
   return '';
 }
@@ -480,7 +481,7 @@ function gen(fromProduct){
     if(!exact||vals[p.id]==null||vals[p.id]==='')vals[p.id]=autoVal(p,l,w,h,k);
   });
   cur={id:exact?exact.id:null,name:name||(exact?exact.name:''),l,w,h,vals,k,
-    src:exact?(exact.ok?'ok':'try'):'calc',near:near?{id:near.id,name:near.name||(near.l+'×'+near.w+'×'+near.h),l:near.l,w:near.w,h:near.h,ok:!!near.ok}:null};
+    src:exact?(exact.ok?'ok':'try'):'calc',nearName:near?near.name||(near.l+'×'+near.w+'×'+near.h):'',nearOk:!!(near&&near.ok),nearDims:near?near.l+'×'+near.w+'×'+near.h:''};
   drawRun();
 }
 function drawRun(){
@@ -512,9 +513,8 @@ function drawRun(){
       ${k.dwell!=null?stat(fx(k.dwell,2)+' ث','زمن لمسة اللحام الطولي','طول السخان ÷ سرعة السير'):''}
       ${k.perRoll!=null?stat(k.perRoll,'بوكس من الرول'):''}${k.cost!=null?stat(fx(k.cost,4),'تكلفة السلوفان للبوكس'):''}
     </div>
-    ${S.cfg.calibNote&&S.cfg.calibOk!==true?`<div class="note warn-cal">⚠️ المعايرة الحالية غير موثقة (${esc(S.cfg.calibNote)}): ممكن تكون اتعملت من ظبطة مش مؤكدة، فكل الأرقام المبنية عليها مشكوك فيها. اعمل معايرة جديدة من ظبطة مؤكدة.</div>`:''}
     <div class="note">${src}</div>
-    ${c.near?`<div class="note">أقرب ظبطة محفوظة كمرجع: <b>${esc(c.near.name)}</b> <bdi dir="ltr">${c.near.l}×${c.near.w}×${c.near.h}</bdi> (${c.near.ok?'مؤكدة':'تجربة'}). القيم هنا محسوبة للمقاس الجديد، قارنها بيها. <button class="sm ghost noprint" data-act="open" data-id="${esc(c.near.id)}">افتح الظبطة القريبة</button></div>`:''}
+    ${c.nearName?`<div class="note">أقرب ظبطة محفوظة للمقاس ده: <b>${esc(c.nearName)}</b> (<bdi dir="ltr">${esc(c.nearDims)}</bdi>، ${c.nearOk?'مؤكدة':'تجربة'}). للمقارنة بس، القيم هنا محسوبة.</div>`:''}
     ${k.warn.length?`<div class="note">⚠️ ${k.warn.map(esc).join('<br>⚠️ ')}</div>`:''}
     <div class="note">البنود بترتيب الظبط المعتمد لماكينات العيلة دي. طول الفيلم مطابق لماكينتكم (245*135*75 = 435 على الشاشة). الخلوصات من أدلة الماكينات المشابهة. الحرارة وضغط اللحام وعرض الرول بدايات تتعدل مرة واحدة من الإعدادات فتتطبق على كل المقاسات.</div>
   </div>
@@ -527,14 +527,17 @@ function drawRun(){
     <div class="row noprint" style="margin-top:12px">
       <button class="ok" data-act="save-ok">الظبطة دي تمام، احفظها مؤكدة</button>
       <button class="ghost" data-act="save-try">احفظ كتجربة</button>
-      ${has3d?`<a class="btn3d" href="3d.html?l=${c.l}&w=${c.w}&h=${c.h}">شوف الحركة 3D</a>`:`<span class="btn3d" aria-disabled="true" title="ملف 3d.html مش موجود جنب الأداة">الحركة 3D مش متاحة</span>`}
-      <button class="ghost" data-act="calib">عايِر المعادلات من الظبطة دي</button>
+      <span id="b3d"></span>
+      <button class="ghost" data-act="calib"${c.src==='ok'?'':' disabled'}>عايِر المعادلات من الظبطة دي${c.src==='ok'?'':' (لازم تحفظها مؤكدة الأول)'}</button>
       <button class="ghost" data-act="mcard">اطبع كارت القالب</button>
       <button class="ghost" data-act="print">اطبع الصفحة كلها</button>
     </div>
   </div>`;
-  drawPins();
+  drawPins();set3d();
 }
+let has3d=false;
+function set3d(){const e=$('#b3d');if(e)e.innerHTML=(has3d&&cur)?`<a class="btn3d" href="3d.html?l=${cur.l}&w=${cur.w}&h=${cur.h}">شوف الحركة 3D</a>`:''}
+if(/^https?:/.test(location.protocol)){fetch('3d.html',{method:'HEAD'}).then(r=>{if(r.ok&&/html/i.test(r.headers.get('content-type')||'')){has3d=true;set3d()}}).catch(()=>{})}
 function printCard(){
   if(!cur)return;
   const k=cur.k,rows=S.params.filter(p=>p.id!=='angles').map(p=>`<tr><td>${esc(p.name.replace(/^\d+[بأ]?\.\s*/,''))}</td><td dir="ltr">${esc(cur.vals[p.id]??'')} ${esc(p.unit)}</td></tr>`).join('');
@@ -546,7 +549,9 @@ function printCard(){
    <p>المسافات: الدلائل 1 إلى 1.5 مم من كل جنب · ألواح الطي 1.5 إلى 3 مم فوق وتحت · مشكّل الأركان 1 إلى 2 مم · الدافع يقف قبل لوح الطي بـ 1 إلى 2 مم.</p>
    <p>الحرارة: غيّر 5 درجات في المرة وجرّب 10 بوكسات. ابدأ بعد ما الحرارة الفعلية (PV) توصل للمطلوبة (SV) وتستنى دقيقتين.</p></div>`;
   document.body.classList.add('pc');
-  window.addEventListener('afterprint',()=>document.body.classList.remove('pc'),{once:true});
+  const done=()=>{document.body.classList.remove('pc');window.removeEventListener('afterprint',done);document.removeEventListener('pointerdown',done);clearTimeout(ft)};
+  window.addEventListener('afterprint',done);const ft=setTimeout(done,120000);
+  setTimeout(()=>document.addEventListener('pointerdown',done,{once:true}),800);
   window.print();
 }
 function drawPins(){
@@ -579,7 +584,7 @@ function drawProducts(){
 /* ---------- معايرة المعاملات من ظبطة صح ---------- */
 function calibrate(j){
   if(!j)return;
-  if(!j.ok)return toast('المعايرة بتتعمل من ظبطة مؤكدة بس. جرّب الظبطة واحفظها مؤكدة الأول.');
+  if(!j.ok)return toast('المعايرة بتتعمل من ظبطة مؤكدة بس. احفظ الظبطة كمؤكدة الأول.');
   const {l,w,h}=j,v=j.vals||{},c=S.cfg,got=[];
   if(!confirm('هتتعدل معاملات الماكينة كلها حسب القيم الحالية للبوكس ده ('+l+'×'+w+'×'+h+'). تأكد إنها ظبطة شغالة صح. تكمل؟'))return;
   const n=id=>{const x=parseFloat(v[id]);return isFinite(x)&&String(v[id]).trim()!==''?x:null};
@@ -641,7 +646,7 @@ function drawSetup(){
     ${f('clearance','مسافة الدلائل عن البوكس من كل جنب (مم)',0.25)}${f('moldClear','زيادة القالب عن البوكس (مم)',0.25)}${f('thick','سُمك السلوفان (ميكرون) — كل 5 = 3 درجات')}
     ${f('density','الكثافة (جم/سم³)',0.01)}${f('priceKg','سعر الكيلو')}
     ${f('rollKg','وزن الرول (كجم)',0.1)}
-    ${f('hostSpeed','السرعة المستهدفة للمقاس الجديد (بوكس/د). مش حد للماكينة')}${f('feedSpeed','أقل Film feeding speed (مم/ث)')}
+    ${f('hostSpeed','السرعة المستهدفة للمقاس الجديد (بوكس/د). مش حد للماكينة')}${f('feedSpeed','أقل Film feeding speed (مم/ث). 0 = بدون حد أدنى')}
     ${f('pusherSpeed','Front side pusher speed (مم/ث)')}${f('tempStart','حرارة Long side الأساس لفيلم 25 ميكرون أكريليك (°C)')}
     <div><label for="c-ft">نوع الفيلم</label><select id="c-ft" data-ftype>${Object.keys(FILMS).map(k=>`<option value="${k}"${c.filmType===k?' selected':''}>${FILMS[k][0]}</option>`).join('')}</select><small class="hint">المدى التقريبي: ${(FILMS[c.filmType]||FILMS.acrylic)[1]}. المصنع سجّل 155 °C على Long side في فيديو 20 (الفيلم مش معروف). حرارة الأساس بتتظبط بزرار المعايرة من ظبطة شغالة عندكم.</small></div>${f('startSpeed','سرعة أول تجربة لمقاس جديد')}${f('speedMax','أقصى سرعة للماكينة (بوكس/د) من الكتالوج')}
     ${f('air','ضغط الهوا الرئيسي (MPa)',0.05)}${f('air2','ضغط هوا اللحام (MPa)',0.05)}
@@ -649,12 +654,12 @@ function drawSetup(){
     ${f('lsaBase','Long side start (تجريبي): الزاوية عند طول الفيلم المرجعي (°)')}${f('lsaCut','طول الفيلم المرجعي للزاوية (مم)')}${f('lsaSlope','ميل الزاوية (° لكل مم فيلم، 0 = إلغاء)',0.01)}${f('foldGap','خلوص ألواح الطي فوق وتحت (مم)',0.25)}${f('cornerGap','خلوص مشكّل الأركان (مم)',0.25)}${f('pusherStop','وقفة الدافع قبل لوح الطي (مم)',0.25)}
     ${f('pressInterf','الضاغط أوطى من البوكس بـ (مم)',0.25)}${f('sideSqueeze','السخانات أضيق من الطول بـ (مم)',0.25)}${f('tapeMargin','الشريط بعيد عن حرف الطي (مم)')}
     <h3 style="grid-column:1/-1;margin-top:8px">الحرارة والسرعة</h3>
-    ${f('tempPerMicron','درجة لكل ميكرون سُمك',0.05)}${f('spotOff','Spot فوق Long side بـ (°C)')}${f('ironOff','Iron عن Long side (°C، سالب = أقل)')}
+    ${f('tempPerMicron','درجة لكل ميكرون سُمك',0.05)}${f('spotOff','Spot عن Long side (°C، سالب = أقل)')}${f('ironOff','Iron عن Long side (°C، سالب = أقل)')}
     ${f('feedShare','نسبة وقت الدورة المتاحة لتغذية الفيلم (0–1)',0.01)}${f('pitchGap','فجوة بين البوكسات على السير (مم)')}${f('sealLen','طول سخان Long side (مم). 0 = مجهول')}
     ${f('dwellMin','أقل زمن لحام (ث). 0 = مجهول',0.05)}${f('tempPerDoubling','درجات زيادة لكل نص زمن اللحام (0 = بدون معايرة)',0.5)}${f('feedMax','أقصى Film feeding speed للماكينة (مم/ث). 0 = مجهول')}
     ${f('lMin','أقل طول بوكس (مم)')}${f('lMax','أقصى طول بوكس (مم)')}${f('wMin','أقل عرض (مم)')}${f('wMax','أقصى عرض (مم)')}${f('hMin','أقل ارتفاع (مم)')}${f('hMax','أقصى ارتفاع (مم)')}${f('rollMax','أقصى عرض رول (مم)')}
     ${f('tipExp','أس ثبات البوكس (0 = إلغاء)',0.1)}${f('refW','عرض بوكس المرجع (مم)')}${f('refH','ارتفاع بوكس المرجع (مم)')}
-    ${c.calibNote?`<p class="note" style="grid-column:1/-1">آخر معايرة: ${esc(c.calibNote)}${c.calibOk!==true?' · ⚠️ غير موثقة، اعمل معايرة جديدة من ظبطة مؤكدة':' · ✓ من ظبطة مؤكدة'}</p>`:''}
+    ${c.calibNote?`<p class="note" style="grid-column:1/-1">آخر معايرة: ${esc(c.calibNote)}</p>`:''}
     <div><label for="c-widths">عروض الرولات المتاحة (مم) بفاصلة</label><input id="c-widths" data-widths value="${c.rollWidths.join(', ')}" placeholder="120, 140, 160" style="direction:ltr"></div>
   </div></div>
 
@@ -728,9 +733,9 @@ document.addEventListener('click',e=>{
   else if(a==='save-try')saveProduct(false);
   else if(a==='print'){document.body.classList.remove('pc');window.print()}
   else if(a==='mcard')printCard();
-  else if(a==='calib'){const p=cur&&cur.id&&S.products.find(x=>x.id===cur.id);
-    if(!p||!p.ok)return toast('المعايرة بتتعمل من ظبطة مؤكدة بس. جرّب الظبطة واحفظها مؤكدة الأول.');
-    if(JSON.stringify(p.vals)!==JSON.stringify(cur.vals))return toast('فيه قيم اتعدلت ومش محفوظة. احفظها مؤكدة الأول وبعدين عاير.');
+  else if(a==='calib'){const p=cur&&S.products.find(x=>x.id===cur.id);
+    if(!p||!p.ok)return toast('احفظ الظبطة كمؤكدة الأول، وبعدين عايِر.');
+    if(Object.keys(cur.vals).some(k=>String(cur.vals[k]??'')!==String(p.vals[k]??'')))return toast('غيّرت قيم ولسه ما حفظتهاش. احفظها مؤكدة الأول وبعدين عايِر.');
     calibrate(p)}
   else if(a==='calibp'){const p=S.products.find(x=>x.id===id);calibrate(p)}
   else if(a==='open'){const p=S.products.find(x=>x.id===id);$('#pname').value=p.name;$('#pl').value=p.l;$('#pw').value=p.w;$('#ph').value=p.h;show('run');gen(p)}
@@ -759,7 +764,7 @@ document.addEventListener('change',e=>{
   else if('import' in t.dataset&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);
     if(!Array.isArray(d.params)||!Array.isArray(d.products))throw 0;
     if(!confirm('الاستيراد هيبدّل كل البيانات الحالية. تكمل؟'))return;
-    try{localStorage.setItem(KEY,JSON.stringify(d))}catch(q){return toast('الاستيراد فشل: مساحة التخزين مش مكفية. قلّل الصور في النسخة وجرّب تاني.')}
+    try{localStorage.setItem(KEY,JSON.stringify(d))}catch(q){return toast('الملف سليم بس مساحة التخزين اتملت، فما اتستوردش. البيانات الحالية زي ما هي. امسح صور أو ظبطات قديمة وجرّب تاني.')}
     S=load();migrate();cur=null;$('#out').innerHTML='';drawSetup();toast('اتستوردت النسخة')}
     catch(x){toast('الملف مش نسخة احتياطية صحيحة')}};r.readAsText(t.files[0])}
 });
@@ -770,10 +775,10 @@ function migrate(){
 if(!S.seeded){const k=calc(245,135,75),v={};S.params.forEach(p=>{if(p.auto)v[p.id]=autoVal(p,245,135,75,k)});
   S.products.push({id:'ref',name:'خيال 200 مل (مرجع الماكينة)',l:245,w:135,h:75,vals:v,ok:false,note:'أرقام الشاشة مأخوذة من صور الماكينة. الحرارة والهوا وعرض الرول لسه تقديرية.',date:new Date().toISOString().slice(0,10)});
   S.seeded=true;save()}
-if(S.engine!==2){const r=S.products.find(x=>x.id==='ref'&&!x.ok);
+if((S.engine||0)<2){const r=S.products.find(x=>x.id==='ref'&&!x.ok);
   if(r){const k=calc(r.l,r.w,r.h);S.params.forEach(p=>{if(p.auto)r.vals[p.id]=autoVal(p,r.l,r.w,r.h,k)})}
   S.engine=2;save()}
-if(S.engine!==3){
+if((S.engine||0)<3){
   const OLD={"guide": ["2. دلائل السير (مسافة داخلية)", "قيس 5 بوكسات وخد أطولهم، وسيب 1 إلى 1.5 مم من كل جنب. البوكس يمشي على خط النص من غير لعب."], "roll": ["4. عرض رول السلوفان", "الطول + الارتفاع + 15. المسموح من الطول + الارتفاع + 8 لحد الطول + 1.5 × الارتفاع. أضيق = الأطراف مفتوحة، أعرض = أطراف تخينة ومكرمشة. وسّط الرول على نص البوكس."], "filmlen": ["5. Film length (شاشة Auto)", "محسوب بمعادلة ماكينتكم: 2 × (العرض + الارتفاع) + 15."], "pusher": ["7. وقفة الدافع", "الدافع يوقف قبل لوح الطي السفلي بـ 1 إلى 2 مم."], "fold": ["8. ألواح الطي (فتحة الارتفاع)", "لف العمود المربع لحد ما ألواح الطي تبعد عن البوكس 1.5 إلى 3 مم من فوق ومن تحت. المسافة بين لوح الطي واللوح الأوسط 2 إلى 3 مم."], "side": ["10. سخانات الجوانب (المسافة بينهم)", "= طول البوكس. لو السخانات على سوستة قرّبها 0.5 إلى 1 مم أقل من الطول عشان تضغط. حط البوكس بينهم كمقاس واقفل الذراعين."], "tlong": ["13. حرارة Long side sealing", "الأساس. السلوفان العادي (أكريليك) من 115 لـ 145، والمكوّن من طبقات (co-ex) من 130 لـ 160. غيّر 5 درجات في المرة وجرّب 10 بوكسات."], "host": ["18. Host speed (شاشة Auto)", "أول مرة لمقاس جديد ابدأ أبطأ (الرقم ده)، وبعد ما الشكل يثبت ارجع لـ 18."]},NEWP={"filmlen": ["5. Film length (شاشة Auto وجدول المنتجات)", "محسوب بمعادلة ماكينتكم: 2 × (العرض + الارتفاع) + 15 (435 للمقاس 245×135×75 على شاشتكم). تأكد في فيديو التدريب: المدرب بيحسبه من (العرض + الارتفاع) وبيكتبه في جدول المنتجات. في فيديو 07 المدرب بيحسب تراكب 10 مم ويزوّد سماح، وده لشغلانة تانية، والأداة ماشية على 15 من شاشتكم. لما تغيّر المقاس، اللي بيتغير في جدول المنتجات هو طول الفيلم (فيديو 13)."], "host": ["18. Main Servo Speed = Host speed (شاشة Auto وجدول المنتجات)", "السرعة بتتحفظ لكل منتج في جدول المنتجات، وهي مش حد للماكينة (ماكينة التدريب شغالة 35 بوكس/دقيقة في فيديو 13، والكتالوج 30 إلى 50). أول مرة لمقاس جديد ابدأ أبطأ (الرقم ده) وجرّب 3 بوكسات، وبعد ما الشكل يثبت ارفع للسرعة اللي المنتج هيشتغل بيها."], "roll": ["4. عرض رول السلوفان", "الطول + الارتفاع + 15. المسموح من الطول + الارتفاع + 8 لحد الطول + 1.5 × الارتفاع. أضيق = الأطراف مفتوحة، أعرض = أطراف تخينة ومكرمشة. وسّط الرول على نص البوكس. تركيب الفيلم: مرّر الفيلم من النص، اسحبه، وبعدين اقفل قفل الفيلم من الجنبين (فيديو 12 و13)."], "tlong": ["13. حرارة Long side sealing", "الأساس. السلوفان العادي (أكريليك) من 115 لـ 145، والمكوّن من طبقات (co-ex) من 130 لـ 160. غيّر 5 درجات في المرة وجرّب 10 بوكسات. المصنع في فيديو 20 كان بيشغل عدّاد على 155 وبيقول لازم 155 قبل ما يبدأ (الفيلم غير معروف). استنى لحد ما PV توصل لـ SV قبل التشغيل."], "guide": ["2. دلائل السير (مسافة داخلية)", "قيس 5 بوكسات وخد أطولهم، وسيب 1 إلى 1.5 مم من كل جنب. البوكس يمشي على خط النص من غير لعب. من التدريب: فكّ البراغي الأول (Loose)، ظبّط الدليل، وبعدين شدّ. الدليل على خط واحد من الجنبين (فيديو 04 و11 و24). جرّب 3 بوكسات في نفس الخط قبل السرعة الكاملة (فيديو 11 و18)."], "pusher": ["7. وقفة الدافع", "الدافع يوقف قبل لوح الطي السفلي بـ 1 إلى 2 مم. من التدريب: الدافع يتوسّط على نص البوكس والبوكس مستقيم (فيديو 24)."], "fold": ["8. ألواح الطي (فتحة الارتفاع)", "لف العمود المربع لحد ما ألواح الطي تبعد عن البوكس 1.5 إلى 3 مم من فوق ومن تحت. المسافة بين لوح الطي واللوح الأوسط 2 إلى 3 مم. من التدريب: اتأكد من الارتفاع في نص البوكس، وفكّ ثم ظبط ثم شدّ (فيديو 04 و24)."], "side": ["10. سخانات الجوانب (المسافة بينهم)", "= طول البوكس. لو السخانات على سوستة قرّبها 0.5 إلى 1 مم أقل من الطول عشان تضغط. حط البوكس بينهم كمقاس واقفل الذراعين. من التدريب: مكان سخان اللحام (القطعة اللي بتتحرك فوق/تحت) بيتظبط على ارتفاع البوكس: كل ما الارتفاع يزيد، الوضع بيتغير ولازم يتظبط تاني (فيديو 08)، ولا تخبّط السخان وانت بتحرّكه (فيديو 10)."]};
   if(!S.params.find(p=>p.id==='lsa')){const i=S.params.findIndex(p=>p.id==='filmlen');
     S.params.splice(i<0?S.params.length:i+1,0,JSON.parse(JSON.stringify(DEF.params.find(p=>p.id==='lsa'))))}
@@ -783,7 +788,20 @@ if(S.engine!==3){
   const r=S.products.find(x=>x.id==='ref'&&!x.ok);
   if(r){const k=calc(r.l,r.w,r.h);S.params.forEach(p=>{if(p.id==='lsa')r.vals.lsa=autoVal(p,r.l,r.w,r.h,k)})}
   S.engine=3;save()}
-if(S.engine!==4){if(S.cfg.calibNote&&S.cfg.calibOk!==true)S.cfg.calibOk=false;S.engine=4;save()}
+
+if((S.engine||0)<5){
+  const c=S.cfg;
+  if(!c.calibNote){[['feedShare',0.66],['hostSpeed',18],['feedSpeed',200],['tempStart',125],['spotOff',10]].forEach(([k,o])=>{if(c[k]===o)c[k]=DEF.cfg[k]});
+    c.calibNote='MIRZAM 245×135×75، صور الماكينة 2026-11-25';c.calibOk=true}
+  S.molds.forEach(m=>{if(m.id==='m13'&&m.name==='245*135*75 NO.13')m.name='245*135*75 NO.13-4'});
+  const OLD4={"host": "السرعة بتتحفظ لكل منتج في جدول المنتجات، وهي مش حد للماكينة (ماكينة التدريب شغالة 35 بوكس/دقيقة في فيديو 13، والكتالوج 30 إلى 50). أول مرة لمقاس جديد ابدأ أبطأ (الرقم ده) وجرّب 3 بوكسات، وبعد ما الشكل يثبت ارفع للسرعة اللي المنتج هيشتغل بيها.", "tlong": "الأساس. السلوفان العادي (أكريليك) من 115 لـ 145، والمكوّن من طبقات (co-ex) من 130 لـ 160. غيّر 5 درجات في المرة وجرّب 10 بوكسات. المصنع في فيديو 20 كان بيشغل عدّاد على 155 وبيقول لازم 155 قبل ما يبدأ (الفيلم غير معروف). استنى لحد ما PV توصل لـ SV قبل التشغيل.", "tleft": "أعلى من Long side بـ 10، لأن الطرف فيه 3 إلى 4 طبقات فيلم.", "tiron": "أقل من Long side بـ 5، لأن لمسته أطول (1.6 ث) ومساحته أكبر، فهو أول واحد يكرمش الفيلم.", "feed": "بيزيد بنسبة طول الفيلم عن المرجع."};
+  S.params.forEach(p=>{const o=OLD4[p.id];if(o&&p.hint===o){const d=DEF.params.find(x=>x.id===p.id);if(d)p.hint=d.hint}});
+  const r=S.products.find(x=>x.id==='ref'&&!x.ok);
+  if(r){const k=calc(r.l,r.w,r.h);S.params.forEach(p=>{if(p.auto)r.vals[p.id]=autoVal(p,r.l,r.w,r.h,k)});
+    Object.assign(r.vals,{filmlen:'435',feed:'300',host:'16',fpusher:'50',tlong:'193',tleft:'150',tright:'150'});
+    if(String(r.note||'').startsWith('أرقام الشاشة مأخوذة من صور الماكينة. الحرارة'))r.note='أرقام الشاشة والحرارات (193/150/150) من صور الماكينة. Iron والهوا وعرض الرول لسه تقديرية.'
+    r.ok=true}
+  S.engine=5;save()}
 }
 migrate();
 drawFix();
