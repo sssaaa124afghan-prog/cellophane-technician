@@ -239,7 +239,7 @@ body{padding-bottom:calc(110px + var(--safe-b))}
 </head>
 <body>
 <div class="wrap">
-  <header class="hero"><div class="eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2"/><path d="M3 12h18M8 7V4h8v3"/></svg>Wuxi SICI · Siemens Smart 700</div>
+  <header class="hero"><div class="eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="2"/><path d="M3 12h18M8 7V4h8v3"/></svg>Wuxi SICI · Siemens Smart 700 · <bdi dir="ltr">v4.2</bdi></div>
   <h1>فني ماكينة السلوفان</h1>
   <p class="sub">اكتب أبعاد البوكس، ويطلعلك كارت الظبط كامل بالترتيب.</p></header>
 
@@ -308,7 +308,7 @@ const PARTS=[
 ];
 const PIN={filmlen:'Film length',feed:'Feed speed',host:'Host speed',fpusher:'Pusher speed'};
 function phOf(p){return p.photo||PH[PMAP[p.id]]||''}
-function drawParts(){$('#parts').innerHTML=PARTS.map(([k,t,d])=>`<div class="part"><img src="${PH[k]}" alt="${esc(t)}" data-zoom="${esc(t)}" loading="lazy"><div><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}
+function drawParts(){$('#parts').innerHTML=PARTS.map(([k,t,d])=>`<div class="part"><img src="${PH[k]}" alt="${esc(t)}" data-zoom="${esc(t)}" loading="lazy" decoding="async"><div><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}
 const KEY='cello_tech_v6';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -496,7 +496,7 @@ function drawRun(){
     :stat('<bdi dir="ltr">'+fx(k.moldNeed.l)+'×'+fx(k.moldNeed.w)+'×'+fx(k.moldNeed.h)+'</bdi>','مقاس القالب المطلوب (مم)',S.molds.length?'مفيش قالب مسجل يناسبه':'سجّل القوالب في الإعدادات');
   const panelP=S.params.filter(p=>p.kind==='panel'),manualP=S.params.filter(p=>p.kind==='manual');
   const stepHtml=(p,i,n)=>`<div class="step">
-    ${phOf(p)?`<img class="ph" src="${phOf(p)}" alt="${esc(p.name)}" data-zoom="${esc(p.name)}">`:`<div class="ph empty">صوّر الجزء ده وضيفه من الإعدادات</div>`}
+    ${phOf(p)?`<img class="ph" src="${phOf(p)}" alt="${esc(p.name)}" data-zoom="${esc(p.name)}" loading="lazy" decoding="async">`:`<div class="ph empty">صوّر الجزء ده وضيفه من الإعدادات</div>`}
     <div><div class="n">خطوة ${i+1} من ${n} ${p.conf==='ok'?'<span class="badge b-ok">✓ من الماكينة</span>':p.conf==='est'?'<span class="badge b-try">⚠️ بداية تقديرية</span>':''}</div><h3>${esc(p.name)}</h3>
       <div class="val"><input ${p.unit?'type="number" inputmode="decimal" step="any"':'dir="auto"'} data-val="${p.id}" value="${esc(c.vals[p.id]??'')}" aria-label="${esc(p.name)}" placeholder="القيمة"><span>${esc(p.unit)}</span></div>
       ${(()=>{const t=how(p,c.l,c.w,c.h,k);return t?`<p class="how" dir="auto">اتحسبت: <bdi dir="ltr">${esc(t)}</bdi></p>`:''})()}${p.hint?`<p>${esc(p.hint)}</p>`:''}</div></div>`;
@@ -519,7 +519,7 @@ function drawRun(){
     <div class="note">البنود بترتيب الظبط المعتمد لماكينات العيلة دي. طول الفيلم مطابق لماكينتكم (245*135*75 = 435 على الشاشة). الخلوصات من أدلة الماكينات المشابهة. الحرارة وضغط اللحام وعرض الرول بدايات تتعدل مرة واحدة من الإعدادات فتتطبق على كل المقاسات.</div>
   </div>
   <div class="card"><h2>لوحة التحكم</h2>
-    ${(S.panelPhoto||PH.panel)?`<div class="panel"><img src="${S.panelPhoto||PH.panel}" alt="لوحة التحكم" data-zoom="شاشة Auto"><div id="pins"></div></div><div id="legend" style="margin-top:8px"></div>`
+    ${(S.panelPhoto||PH.panel)?`<div class="panel"><img src="${S.panelPhoto||PH.panel}" alt="لوحة التحكم" data-zoom="شاشة Auto" decoding="async"><div id="pins"></div></div><div id="legend" style="margin-top:8px"></div>`
       :`<div class="ph empty" style="aspect-ratio:16/7">صورة لوحة التحكم لسه ما اتضافتش. ضيفها من الإعدادات وحدد مكان كل رقم عليها.</div>`}
   </div>
   <div class="card"><h2>خطوات الظبط بالترتيب</h2>${all.map((p,i)=>stepHtml(p,i,all.length)).join('')}
@@ -673,7 +673,7 @@ function drawSetup(){
       </div>
       <label style="margin-top:8px">تعليمات للعامل</label><input data-p="${p.id}" data-k="hint" value="${esc(p.hint)}">
       </div>
-      <div style="width:110px">${phOf(p)?`<img class="ph" src="${phOf(p)}" alt="" data-zoom="${esc(p.name)}">`:`<div class="ph empty">بدون صورة</div>`}
+      <div style="width:110px">${phOf(p)?`<img class="ph" src="${phOf(p)}" alt="" data-zoom="${esc(p.name)}" loading="lazy" decoding="async">`:`<div class="ph empty">بدون صورة</div>`}
       <button class="sm danger" style="margin-top:6px;width:100%" data-act="delparam" data-id="${p.id}">احذف البند</button></div></div>`).join('')}
     <button class="ghost" data-act="addparam">ضيف بند ظبط</button>
   </div>
@@ -770,7 +770,8 @@ document.addEventListener('change',e=>{
 });
 ['pl','pw','ph','pname'].forEach(i=>$('#'+i).addEventListener('keydown',e=>{if(e.key==='Enter')gen()}));
 let lt;['pl','pw','ph'].forEach(i=>$('#'+i).addEventListener('input',()=>{clearTimeout(lt);lt=setTimeout(()=>{
-  if(num($('#pl').value)>0&&num($('#pw').value)>0&&num($('#ph').value)>0)gen()},350)}));
+  const l=num($('#pl').value),w=num($('#pw').value),h=num($('#ph').value);
+  if(l>0&&w>0&&h>0&&!(cur&&cur.l===l&&cur.w===w&&cur.h===h))gen()},700)}));
 function migrate(){
 if(!S.seeded){const k=calc(245,135,75),v={};S.params.forEach(p=>{if(p.auto)v[p.id]=autoVal(p,245,135,75,k)});
   S.products.push({id:'ref',name:'خيال 200 مل (مرجع الماكينة)',l:245,w:135,h:75,vals:v,ok:false,note:'أرقام الشاشة مأخوذة من صور الماكينة. الحرارة والهوا وعرض الرول لسه تقديرية.',date:new Date().toISOString().slice(0,10)});
@@ -802,6 +803,15 @@ if((S.engine||0)<5){
     if(String(r.note||'').startsWith('أرقام الشاشة مأخوذة من صور الماكينة. الحرارة'))r.note='أرقام الشاشة والحرارات (193/150/150) من صور الماكينة. Iron والهوا وعرض الرول لسه تقديرية.'
     r.ok=true}
   S.engine=5;save()}
+if((S.engine||0)<6){
+  /* v4.2: المعايرة القديمة غير الموثقة بتتبدل بقراءات الماكينة الفعلية، والموثقة بتفضل زي ما هي */
+  const c=S.cfg;
+  if(c.calibOk!==true||!c.calibNote){['hostSpeed','feedSpeed','feedShare','tempStart','spotOff','ironOff'].forEach(k=>c[k]=DEF.cfg[k]);
+    c.calibNote='MIRZAM 245×135×75، صور الماكينة 2026-11-25';c.calibOk=true}
+  const MV={filmlen:'435',feed:'300',host:'16',fpusher:'50',tlong:'193',tleft:'150',tright:'150'};
+  S.products.forEach(r=>{if(r.l===245&&r.w===135&&r.h===75&&(r.id==='ref'||!r.ok)){const k=calc(r.l,r.w,r.h);
+    S.params.forEach(p=>{if(p.auto&&p.id==='tiron')r.vals.tiron=autoVal(p,r.l,r.w,r.h,k)});Object.assign(r.vals,MV);if(r.id==='ref')r.ok=true}});
+  S.engine=6;save()}
 }
 migrate();
 drawFix();
